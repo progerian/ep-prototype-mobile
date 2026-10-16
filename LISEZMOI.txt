@@ -1,0 +1,6 @@
+EP prototype — version mobile dans la coque
+
+- index.html : le site dans un téléphone (coque), avec la version mobile des pages.
+- mobile-frame.html?p=<page>.html : ouvre une page précise dans la coque (ex. search-all.html).
+Ouvrir index.html dans un navigateur (pas besoin de serveur).
+Les miniatures des photos et vidéos viennent du serveur du Parlement : une connexion est nécessaire pour les voir.

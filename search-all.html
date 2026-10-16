@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EP Search results (All) — EP prototype</title>
+<link rel="stylesheet" href="design-system/tokens/colors.css">
+<link rel="stylesheet" href="design-system/tokens/spacing.css">
+<link rel="stylesheet" href="design-system/tokens/typography.css">
+<link rel="stylesheet" href="design-system/tokens/layout.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--ep-font-family);
+    background: var(--ep-white);
+    color: var(--ep-grey-900);
+    margin: 0;
+  }
+  a { color: var(--ep-blue-500); }
+
+  .wrap {
+    max-width: 1176px;
+    margin: 0 auto;
+    padding: 0 var(--ep-size-24);
+  }
+
+  /* --- Header --- */
+  .site-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--ep-size-16);
+    padding-bottom: var(--ep-size-16);
+    border-bottom: var(--ep-size-2) solid var(--ep-grey-200); /* 2px — same content-width box as .results-bar, not the padded .wrap box */
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--ep-grey-900);
+  }
+  .logo-mark-only { display: none; }
+  .logo-header {
+    width: 199px;
+    height: 46px;
+    display: block;
+  }
+  @media (max-width: 600px) { .logo-header { display: none; } .logo-mark-only { display: block; width: 80px; height: 44px; } }   /* mobile: the muted logo */
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 24px;
+    color: var(--ep-grey-600); /* #6E6E6E */
+  }
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ep-size-8);
+    background: var(--ep-white);
+    border: var(--ep-size-2) solid var(--ep-blue-500);
+    border-radius: var(--ep-radius-xs);
+    padding: var(--ep-padding-2xs) var(--ep-padding-l);
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size); /* 18px */
+    font-weight: 600;
+    color: var(--ep-blue-500);
+    cursor: pointer;
+  }
+
+  /* --- Icons (ep-iconography — solid fill, viewBox 0 0 24 24) --- */
+  .icon {
+    display: inline-block;
+    flex-shrink: 0;
+    fill: currentColor;
+  }
+  .icon-16 { width: 16px; height: 16px; }
+  .icon-20 { width: 20px; height: 20px; }
+  .icon-24 { width: 24px; height: 24px; }
+  .icon-28 { width: 28px; height: 28px; }
+
+  .breadcrumb {
+    padding-top: var(--ep-size-16);
+    font-size: var(--ep-body-s-size);
+    color: var(--ep-grey-600);
+  }
+  .breadcrumb a { color: var(--ep-blue-500); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  h1 {
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-heading-3xl-size);
+    line-height: var(--ep-heading-3xl-line);
+    margin: var(--ep-size-48) 0 var(--ep-size-24); /* 48px above, 24px before the search bar */
+  }
+
+  /* --- Search bar — input + button merged into one control (see visual-tests/date-picker.html .dp-control) --- */
+  .search-bar {
+    display: flex;
+    align-items: stretch;
+    min-height: var(--ep-size-44); /* 44px */
+    border: var(--ep-size-2) solid var(--ep-grey-500); /* 2px */
+    border-radius: var(--ep-radius-xs);
+    background: var(--ep-white);
+    overflow: hidden;
+    margin-bottom: var(--ep-size-16);
+  }
+  .search-bar:focus-within {
+    outline: 2px solid var(--ep-accent-blue-500);
+    outline-offset: 2px;
+  }
+  .search-bar input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    padding: 0 var(--ep-padding-l);
+    color: var(--ep-grey-900);
+  }
+  .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ep-size-8);
+    background: var(--ep-blue-500);
+    color: var(--ep-white);
+    border: none;
+    flex-shrink: 0;
+    padding: 0 var(--ep-padding-xl);
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .search-btn:hover { background: var(--ep-blue-800); }
+
+  /* --- Tabs (EP tabs component — see visual-tests/tabs.html) --- */
+  .tabs {
+    display: inline-flex;
+    align-items: center;
+    border-bottom: 2px solid var(--ep-grey-200);
+  }
+  .tab {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    line-height: var(--ep-body-l-line);
+    color: var(--ep-blue-500);
+    padding: var(--ep-padding-2xs) var(--ep-padding-l); /* 8px 16px */
+    border-radius: var(--ep-radius-2xs) var(--ep-radius-2xs) 0 0;
+    margin-bottom: -2px;
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+  .tab:hover { background: var(--ep-blue-100); color: var(--ep-grey-900); }
+  .tab.is-selected {
+    color: var(--ep-grey-900);
+    font-weight: 600;
+    border-bottom: 4px solid var(--ep-blue-500);
+  }
+  .tab.is-selected:hover { background: var(--ep-blue-100); color: var(--ep-grey-900); }
+
+  /* --- Filters — own row 32px below tabs, panel spans full 12-col width --- */
+  .filters-row { display: flex; align-items: center; gap: var(--ep-size-24); margin: var(--ep-size-32) 0 var(--ep-size-24); } /* 32px above the Filters button, 24px before the results (mobile) */
+  .filters-toggle {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ep-size-8);
+    font-family: var(--ep-font-family);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ep-blue-500);
+    padding: 0;
+    margin: 0;
+  }
+  .filters-toggle:hover { color: var(--ep-blue-800); }
+  .filters-toggle .icon { color: var(--ep-blue-500); }
+  .filters-toggle:hover .icon { color: var(--ep-blue-800); }
+  .filters-panel[hidden] { display: none; }
+  .filters-panel {
+    margin-top: var(--ep-size-32); /* 32px below the Filters button */
+    margin-bottom: var(--ep-gap-l); /* 32px */
+  }
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--ep-grid-columns), 1fr); /* 12 col */
+    gap: var(--ep-gap-m) var(--ep-grid-gap); /* 24px row / 16px col */
+    align-items: start;
+  }
+  .filters-grid .field { grid-column: span 4; margin-bottom: 0; } /* Tags/People/Location — row 2 */
+  .filters-grid .field--show-only { grid-column: span 4; } /* last slot, row 2, behind the date pickers */
+  .filters-grid .field--date { grid-column: span 4; } /* From/To — row 2 */
+  @media (max-width: 600px) {
+    .filters-grid .field { grid-column: span 6; }
+  }
+  @media (max-width: 420px) {
+    .filters-grid .field { grid-column: span 12; }
+  }
+
+  .filters-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--ep-gap-m); /* 24px */
+    margin-top: var(--ep-margin-s); /* 24px */
+  }
+  .filters-reset {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    font-weight: 400;
+    color: var(--ep-blue-500);
+    padding: 0;
+    text-decoration: underline;
+  }
+  .filters-reset[hidden] { display: none; }
+  .filters-reset:hover { color: var(--ep-blue-800); }
+
+  .field label {
+    display: block;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);   /* ep-body-l — 18px/28px */
+    line-height: var(--ep-body-l-line);
+    font-weight: 400;
+    color: var(--ep-grey-900);
+    margin-bottom: var(--ep-padding-2xs); /* 8px */
+  }
+  .select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: var(--ep-size-44); /* 44px */
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    color: var(--ep-grey-900);
+    border: var(--ep-size-2) solid var(--ep-grey-500); /* 2px */
+    border-radius: var(--ep-radius-xs); /* 8px */
+    padding: 0 var(--ep-padding-l); /* 16px */
+    background: var(--ep-white);
+    cursor: pointer;
+  }
+  .select:focus-visible {
+    outline: 2px solid var(--ep-accent-blue-500);
+    outline-offset: 2px;
+  }
+
+  /* --- Date picker field (see visual-tests/date-picker.html) --- */
+  .dp-control {
+    display: flex;
+    align-items: stretch;
+    min-height: var(--ep-size-44); /* 44px */
+    border: var(--ep-size-2) solid var(--ep-grey-500); /* 2px */
+    border-radius: var(--ep-radius-xs); /* 8px */
+    background: var(--ep-white);
+    overflow: hidden;
+  }
+  .dp-control:hover { border-color: var(--ep-blue-800); }
+  .dp-control:focus-within {
+    outline: 2px solid var(--ep-accent-blue-500);
+    outline-offset: 2px;
+  }
+  .dp-field {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    color: var(--ep-grey-900);
+    padding: 0 var(--ep-padding-l); /* 16px */
+  }
+  .dp-calendar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ep-size-44);
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    background: var(--ep-blue-500);
+    color: var(--ep-white);
+  }
+  .dp-calendar-btn:hover { background: var(--ep-blue-800); }
+
+  .radio-row-group {
+    display: flex;
+    align-items: center;
+    gap: var(--ep-size-24);
+    min-height: var(--ep-size-44); /* aligns with adjacent 44px controls */
+  }
+  .radio-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ep-size-8);
+    font-size: var(--ep-body-m-size);
+  }
+  .radio-row input { accent-color: var(--ep-blue-500); width: 16px; height: 16px; }
+
+  .results-count {
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-m-size);
+    line-height: var(--ep-body-m-line);
+    color: var(--ep-grey-900);
+  }
+
+  /* --- Results bar / Sort by (EP component — see visual-tests/sort-by.html) --- */
+  .results-bar-wrap { margin-top: 0; } /* 48px before the rest */
+  .results-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--ep-gap-xs);
+    border-bottom: var(--ep-size-2) solid var(--ep-grey-200); /* 2px */
+    margin-bottom: var(--ep-size-24);
+  }
+  .sort-trigger {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ep-gap-xs);
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-m-size);
+    line-height: var(--ep-body-m-line);
+    color: var(--ep-grey-900);
+    padding: 0;
+  }
+  .sort-trigger .sort-value { color: var(--ep-blue-500); }
+  .sort-trigger .chevron-arrow {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--ep-blue-500);
+    border-bottom: 2px solid var(--ep-blue-500);
+    transform: rotate(45deg);
+    transition: transform 120ms ease;
+  }
+  .sort-dropdown.is-open .chevron-arrow { transform: rotate(-135deg); }
+  .sort-menu {
+    position: absolute;
+    top: calc(100% + var(--ep-gap-xs));
+    right: 0;
+    min-width: 200px;
+    background: var(--ep-white);
+    border: 1px solid var(--ep-blue-500);
+    border-radius: var(--ep-radius-xs);
+    padding: var(--ep-size-12) 0;
+    display: none;
+    z-index: 10;
+  }
+  .sort-dropdown.is-open .sort-menu { display: block; }
+  .sort-option {
+    appearance: none;
+    background: none;
+    border: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-m-size);
+    line-height: var(--ep-body-m-line);
+    color: var(--ep-grey-900);
+    font-weight: 400;
+    padding: var(--ep-size-12) var(--ep-padding-l);
+  }
+  .sort-option:hover { background: var(--ep-blue-100); }
+  .sort-option.is-selected { color: var(--ep-blue-500); font-weight: 600; }
+
+  /* --- Results grid — full 12-col width, 4 cards × 3 cols each --- */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--ep-grid-columns), 1fr); /* 12 col */
+    gap: var(--ep-grid-gap); /* 16px */
+    margin-bottom: var(--ep-gap-l);
+  }
+  .result-card { grid-column: span 3; display: block; text-decoration: none; }
+  @media (max-width: 900px) {
+    .result-card { grid-column: span 4; } /* 3 per row */
+  }
+  @media (max-width: 600px) {
+    .result-card { grid-column: span 6; } /* 2 per row */
+  }
+  @media (max-width: 420px) {
+    .result-card { grid-column: span 12; } /* 1 per row */
+  }
+  .thumb {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--ep-blue-200);
+    margin-bottom: var(--ep-size-8);
+  }
+  .thumb-icon {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 32px;
+    display: block;
+  }
+  .result-caption {
+    font-size: var(--ep-body-m-size);
+    line-height: var(--ep-body-m-line);
+    color: var(--ep-blue-500);
+    font-weight: 600;
+  }
+  .result-card:hover .result-caption { text-decoration: underline; }
+
+  /* --- Pagination (EP pattern) --- */
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: var(--ep-gap-m);
+    justify-content: flex-start;
+    padding: var(--ep-size-16) 0 var(--ep-size-64);
+  }
+  .page-btn, .nav-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--ep-font-family);
+    font-size: var(--ep-body-l-size);
+    color: var(--ep-blue-500);
+    padding: var(--ep-padding-3xs) var(--ep-padding-2xs);
+    border-radius: var(--ep-radius-2xs);
+  }
+  .page-btn { text-decoration: underline; }
+  .page-btn.is-selected {
+    color: var(--ep-grey-900);
+    text-decoration: none;
+    background: var(--ep-blue-100);
+    font-weight: 600;
+  }
+  .ellipsis { color: var(--ep-grey-600); padding: 0 var(--ep-padding-3xs); }
+
+  /* --- Footer --- */
+  .site-footer { background: var(--ep-blue-500); color: var(--ep-white); margin-top: var(--ep-size-32); }
+  .footer-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--ep-size-32) 0;
+    border-bottom: 1px solid rgba(255,255,255,0.25);
+  }
+  .footer-nav { display: flex; flex-direction: column; gap: var(--ep-size-12); }
+  .footer-nav-row { display: flex; gap: var(--ep-size-32); flex-wrap: wrap; }
+  .footer-nav-row a { color: var(--ep-white); text-decoration: none; font-size: var(--ep-body-m-size); }
+  .footer-nav-row a:hover { text-decoration: underline; }
+  .lang-select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ep-size-8);
+    border: 1px solid var(--ep-white);
+    border-radius: var(--ep-radius-xs);
+    padding: var(--ep-padding-3xs) var(--ep-padding-l);
+    font-size: var(--ep-body-m-size);
+    color: var(--ep-white);
+  }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--ep-size-24) 0;
+  }
+  .footer-logo { display: flex; align-items: flex-end; gap: var(--ep-size-12); }
+  .footer-logo .logo-text { color: var(--ep-white); font-size: 18px; line-height: 24px; }
+  .footer-logo-mark { height: 24px; width: auto; display: block; }
+  .footer-links { display: flex; gap: var(--ep-size-24); flex-wrap: wrap; }
+  .footer-links a { color: var(--ep-white); text-decoration: none; font-size: var(--ep-body-s-size); }
+  .footer-links a:hover { text-decoration: underline; }
+
+  /* Real photoset thumbnails + count badge */
+  .thumb { overflow: hidden; }
+  .thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* photoset badge: stacked-photos icon + number of photos */
+  .thumb-badge { position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: var(--ep-size-12); background: var(--ep-grey-900); color: var(--ep-white); height: 40px; padding: 0 var(--ep-size-16) 0 var(--ep-size-12); }
+  .thumb-count { font-size: var(--ep-body-l-size); line-height: var(--ep-body-l-line); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* --- Desktop: filters are a left sidebar (4 cols), results 8 cols, 3 photosets per row --- */
+  .search-layout { display: block; }
+  @media (min-width: 901px) {
+    .filters-row { display: none; }
+    .search-layout { display: grid; grid-template-columns: repeat(var(--ep-grid-columns), 1fr); gap: var(--ep-grid-gap); align-items: start; margin-top: var(--ep-size-48); }
+    .filters-panel, .filters-panel[hidden] { display: block; grid-column: span 4; margin: 0; }
+    .search-layout .results { grid-column: span 8; }
+    .filters-grid .field, .filters-grid .field--date, .filters-grid .field--show-only { grid-column: span 12; }
+    .results-bar-wrap { margin-top: 0; }
+    .result-card { grid-column: span 4; }
+  }
+
+  /* All tab: no filters and no sort (the Photos / Videos tabs keep them) */
+  .filters-row, .filters-panel, .filters-panel[hidden], .sort-trigger, .sort-menu { display: none !important; }
+  .search-layout .results { grid-column: 1 / span 8; }   /* content stays on 8 columns */
+  .filter-title { font-size: var(--ep-body-m-size); line-height: var(--ep-body-m-line); font-weight: 700; margin: 0 0 var(--ep-size-16); }
+  @media (max-width: 900px) { .filter-title { display: none; } }
+
+  /* mobile: the search button keeps only the magnifier */
+  @media (max-width: 600px) {
+    .search-btn .btn-label { display: none; }
+    .search-btn { padding: 0 var(--ep-size-16); }
+  }
+
+  /* demo hint: a small salmon dot after the caption of the clickable video (the whole card is the link) */
+  .click-patch { display: inline-block; width: 24px; height: 24px; margin-left: var(--ep-size-16); vertical-align: middle; border-radius: 50%; background: color-mix(in srgb, var(--ep-red-200) 45%, transparent); transition: background-color 120ms ease; }
+  .result-card:hover .click-patch, a.click-patch:hover { background: var(--ep-red-500); }
+
+  /* --- All tab: text results (title, snippet, date, source) --- */
+  /* result items follow the search-result-item pattern (visual-tests/search-result-item.html): flex column, 8px gap; title and description 18px / 1.3; date 14px, a single line */
+  .results-list { list-style: none; margin: 0 0 var(--ep-size-32); padding: 0; display: flex; flex-direction: column; gap: var(--ep-size-24); }
+  .results-list > li { display: flex; flex-direction: column; gap: var(--ep-size-8); }
+  .res-title { display: block; text-decoration: none; font-size: var(--ep-body-l-size); line-height: 1.3; font-weight: 600; }
+  .res-title:hover { text-decoration: underline; }
+  .res-snippet { margin: 0; font-size: var(--ep-body-l-size); line-height: 1.3; }
+  .res-date { margin: 0; font-size: var(--ep-body-s-size); line-height: 1; color: var(--ep-grey-600); }
+  .res-source:hover { text-decoration: underline; }
+
+  /* agenda result item: same look as the Agenda page (day capsule + long date, bold time, bold title, "Label: value" lines) */
+  .res-next { margin: 0 0 var(--ep-size-24); font-size: var(--ep-body-l-size); line-height: 1.3; font-weight: 600; }
+  .res-agenda { margin: 0 0 var(--ep-size-32); }   /* inside the knowledge panel, 32px before the dashed divider */
+  .res-day-title { margin: 0 0 var(--ep-size-8); font-size: var(--ep-body-l-size); line-height: var(--ep-body-l-line); font-weight: 700; }
+  .res-agenda .ag-time { margin: 0 0 var(--ep-size-8); font-size: var(--ep-body-l-size); line-height: var(--ep-body-l-line); font-weight: 700; }
+  .res-agenda .ag-title { margin: 0; font-size: var(--ep-body-l-size); line-height: var(--ep-body-l-line); font-weight: 700; }
+  .res-fullagenda { display: inline-flex; align-items: center; gap: var(--ep-size-8); margin-top: var(--ep-size-16); font-weight: 600; text-decoration: none; font-size: var(--ep-body-l-size); line-height: 1.3; }
+  .res-fullagenda:hover { text-decoration: underline; }
+  .res-agenda .ag-line { margin: 0; font-size: var(--ep-body-l-size); line-height: var(--ep-body-l-line); }
+  .res-src-row { display: flex; align-items: center; gap: var(--ep-size-16); } .res-src-row .click-patch { margin: 0; }
+  .res-source { text-decoration: none; align-self: flex-start; font-size: var(--ep-body-l-size); line-height: 1.3; }
+  mark { background: color-mix(in srgb, var(--ep-yellow-500) 60%, transparent); color: inherit; padding: 0 2px; }
+
+  /* --- Knowledge panel (MEP card): name, group, country, birth, e-mail, latest activities, photo on the right --- */
+  .kpanel { margin-bottom: 0; display: flex; gap: var(--ep-size-24); align-items: flex-start; }
+  .kpanel-name { margin: 0 0 var(--ep-size-8); font-size: 18px; line-height: normal; font-weight: 700; }
+  .kpanel-name a { color: var(--ep-blue-500); }
+  .kpanel p { margin: 0 0 var(--ep-size-8); font-size: 18px; line-height: normal; }
+  .kpanel p:last-child { margin-bottom: 0; }
+  .kpanel-text { flex: 1; }
+  .kpanel-cols { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--ep-size-24); }
+  .kpanel-col p:last-child { margin-bottom: 0; }
+  .kpanel-plain { color: var(--ep-grey-900, #000); }
+  .kpanel-role { color: var(--ep-grey-900, #000); }
+  .kpanel a { text-decoration: none; } .kpanel a:hover { text-decoration: underline; }
+  .kpanel-mail { display: flex; align-items: center; gap: var(--ep-size-8); } .kpanel-mail .icon { color: var(--ep-blue-500); }
+  .kpanel-photo { flex-shrink: 0; width: 71px; height: 89px; object-fit: cover; display: block; }
+  .kpanel-dots { border: 0; border-top: 1px dashed var(--ep-grey-400, #999); margin: var(--ep-size-24) 0; }
+  .kpanel-photos { margin-top: var(--ep-size-24); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ep-size-16); }
+  .kpanel-ph img { display: block; width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+  .kpanel-videos { margin-top: var(--ep-size-32); }
+  .kpanel-sets .result-card, .kpanel-videos .result-card { grid-column: auto; }
+  .kpanel-sets .result-caption, .kpanel-videos .result-caption { font-size: 1rem; line-height: 24px; }
+  .kpanel-videos .thumb { aspect-ratio: 16 / 9; }
+  .kpanel-videos .result-caption { font-size: 1rem; line-height: 24px; }
+  .kpanel-viewall { display: inline-flex; align-items: center; gap: var(--ep-size-8); font-weight: 600; margin-top: var(--ep-size-16); text-decoration: none; font-size: 18px; }
+.kpanel--topic .kpanel-text p { margin-bottom: var(--ep-size-8); }
+  #kpanel-slot:not(:empty) { margin-bottom: var(--ep-size-32); }
+  .results-list > li.res-kp { display: block; margin: 0; padding: var(--ep-size-24) 0; border-top: 1px dashed var(--ep-grey-400); border-bottom: 1px dashed var(--ep-grey-400); }   /* knowledge panel media: between two dividers, 24px of space on each side of each divider (list gap 24 outside, padding 24 inside) */
+  .res-kp > :first-child { margin-top: 0; } .res-kp > :last-child { margin-bottom: 0; }
+  .kpanel--topic .kpanel-lab { color: var(--ep-grey-900); }
+  .kpanel-sep { color: var(--ep-grey-600); padding: 0 var(--ep-size-8); }
+  .kpanel-viewall--last { margin-bottom: var(--ep-size-32); }
+  .kpanel-viewall:hover { text-decoration: underline; }
+  .kpanel-rule { margin: var(--ep-size-32) 0; }
+  @media (max-width: 600px) { .kpanel-photos { grid-template-columns: 1fr; } .kpanel-photos > :nth-child(n+2) { display: none; } .kpanel { gap: var(--ep-size-16); } .kpanel-cols { grid-template-columns: 1fr; gap: var(--ep-size-8); } .kpanel-role { color: var(--ep-grey-900, #000); } }
+.page-gap { display: inline-flex; align-items: center; padding: 0 var(--ep-size-8); }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap">
+      <div class="site-header-inner">
+        <a class="logo" href="homepage.html">
+          <img class="logo-header" src="design-system/logo%20header.svg" alt="European Parliament" width="199" height="46">
+          <img class="logo-mark-only" src="design-system/Ep_logo_mute.svg" alt="European Parliament" width="80" height="44">
+        </a>
+        <button class="menu-btn">Menu
+          <svg class="icon icon-24" viewBox="0 0 24 24"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="breadcrumb"><a href="homepage.html">European Parliament</a> &gt; Search</div>
+
+    <h1>Search europarl.eu</h1>
+
+    <form class="search-bar" role="search">
+      <input type="search" name="q" value="Metsola" aria-label="Search europarl.eu">
+      <button type="submit" class="search-btn" aria-label="Search"><span class="btn-label">Search</span>
+        <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-white);"><path d="M13.99,2c-4.42,0-8,3.58-8,8,0,1.85.63,3.55,1.69,4.9l-4.85,4.85,1.41,1.41,4.85-4.85c1.35,1.05,3.05,1.69,4.9,1.69,4.42,0,8-3.58,8-8S18.41,2,13.99,2ZM13.99,16c-3.31,0-6-2.69-6-6s2.69-6,6-6,6,2.69,6,6-2.69,6-6,6Z"/></svg>
+      </button>
+    </form>
+
+    <nav class="tabs" role="tablist" aria-label="Result type">
+      <button class="tab is-selected" role="tab" aria-selected="true">All</button>
+      <button class="tab" role="tab" aria-selected="false" data-go="search-photos.html">Photos</button>
+      <button class="tab" role="tab" aria-selected="false" data-go="search-videos.html">Videos</button>
+    </nav>
+
+    <div class="filters-row">
+      <button class="filters-toggle" id="filtersToggle" aria-expanded="false" aria-controls="filtersPanel" type="button">
+        <svg class="icon icon-24" viewBox="0 0 24 24"><path d="M20.01,17.01h-2.19c-.41-1.16-1.51-2-2.82-2s-2.4.84-2.82,2H4v2h8.18c.41,1.16,1.51,2,2.82,2s2.4-.84,2.82-2h2.19v-2ZM15,19.01c-.55,0-1-.45-1-1s.45-1,1-1,1,.45,1,1-.45,1-1,1Z"/><path d="M21,11.01h-9.18c-.41-1.16-1.51-2-2.82-2s-2.4.84-2.82,2h-2.18v2h2.18c.41,1.16,1.51,2,2.82,2s2.4-.84,2.82-2h9.18v-2ZM9,13.01c-.55,0-1-.45-1-1s.45-1,1-1,1,.45,1,1-.45,1-1,1Z"/><path d="M20.01,5.01h-2.19c-.41-1.16-1.51-2-2.82-2s-2.4.84-2.82,2H4v2h8.18c.41,1.16,1.51,2,2.82,2s2.4-.84,2.82-2h2.19v-2ZM15,7.01c-.55,0-1-.45-1-1s.45-1,1-1,1,.45,1,1-.45,1-1,1Z"/></svg>
+        Filters
+      </button>
+      <button class="filters-reset" id="filtersResetM" type="button">Clear filters ✕</button>
+    </div>
+
+    <div class="search-layout">
+    <!-- Filters = left sidebar (4 cols), results = 8 cols -->
+    <div class="filters-panel" id="filtersPanel" hidden>
+      <h2 class="filter-title">Filter by</h2>
+      <div class="filters-grid">
+
+        <div class="field">
+          <label for="f-1">Filter 1</label>
+          <div class="select" id="f-1" tabindex="0" role="button" aria-haspopup="listbox">Select an option <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-2">Filter 2</label>
+          <div class="select" id="f-2" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-3">Filter 3</label>
+          <div class="select" id="f-3" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-4">Filter 4</label>
+          <div class="select" id="f-4" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-5">Filter 5</label>
+          <div class="select" id="f-5" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-6">Filter 6</label>
+          <div class="select" id="f-6" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+        <div class="field">
+          <label for="f-7">Filter 7</label>
+          <div class="select" id="f-7" tabindex="0" role="button" aria-haspopup="listbox">All entries <svg class="icon icon-24" viewBox="0 0 24 24" style="fill:var(--ep-grey-900);"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg></div>
+        </div>
+
+      </div>
+
+      <div class="filters-actions">
+        <button class="filters-reset" id="filtersReset" type="button">Clear filters ✕</button>
+      </div>
+    </div>
+
+    <section class="results">
+      <div class="results-bar-wrap">
+        <div class="results-bar sort-dropdown" id="sortDropdown">
+          <span class="results-count" id="resCount"></span>
+          <button class="sort-trigger" id="sortTrigger" aria-haspopup="listbox" aria-expanded="false">
+            Sort by: <span class="sort-value" id="sortValue">Newest</span>
+            <span class="chevron-arrow"></span>
+          </button>
+          <div class="sort-menu" role="listbox" id="sortMenu">
+            <button class="sort-option" role="option" aria-selected="false">Relevance</button>
+            <button class="sort-option is-selected" role="option" aria-selected="true">Newest</button>
+            <button class="sort-option" role="option" aria-selected="false">Oldest</button>
+            <button class="sort-option" role="option" aria-selected="false">Most viewed</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="kpanel-slot"></div>
+      <ol class="results-list" id="results-list"></ol>
+
+      <nav class="pagination" id="pager" aria-label="Pagination"></nav>
+    </section>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap footer-top">
+      <div class="footer-nav">
+        <div class="footer-nav-row">
+          <a href="#">Law</a>
+          <a href="#">Transparency, Ethics</a>
+          <a href="#">News, Topics</a>
+          <a href="#">Parliament Powers</a>
+          <a href="#">Contact, Visit</a>
+          <a href="#">Plenary</a>
+        </div>
+        <div class="footer-nav-row">
+          <a href="#">Committees, Delegations</a>
+          <a href="#">MEPs</a>
+          <a href="#">About Parliament</a>
+        </div>
+      </div>
+      <div class="lang-select">
+        <svg class="icon icon-24" viewBox="0 0 24 24"><path d="M11.99,2C6.47,2,1.99,6.48,1.99,12s4.48,10,10,10,10-4.48,10-10S17.52,2,11.99,2ZM18.92,8.01h-2.48c-.34-1.19-.83-2.34-1.47-3.43,1.67.67,3.06,1.89,3.96,3.43ZM19.99,12c0,.69-.1,1.36-.26,2h-2.89c.18-1.33.18-2.67,0-4h2.89c.17.64.26,1.31.26,2ZM11.99,20s-.05,0-.08,0c-1.01-1.21-1.75-2.57-2.23-3.99h4.65c-.48,1.43-1.22,2.78-2.23,3.99-.04,0-.07,0-.11,0ZM9.18,14c-.21-1.32-.21-2.67,0-4h5.65c.21,1.32.21,2.67,0,4h-5.65ZM11.99,4s.07,0,.1,0c1.01,1.22,1.75,2.57,2.23,4h-4.65c.48-1.43,1.22-2.78,2.23-4,.03,0,.06,0,.09,0ZM9.05,4.57c-.65,1.09-1.14,2.25-1.48,3.44h-2.5c.9-1.55,2.3-2.77,3.98-3.44ZM4.26,10.01h2.91c-.18,1.33-.18,2.67,0,4h-2.91c-.17-.64-.26-1.31-.26-2s.1-1.36.26-2ZM5.08,16h2.5c.34,1.19.83,2.35,1.48,3.43-1.68-.67-3.08-1.89-3.98-3.43ZM14.96,19.42c.65-1.09,1.13-2.24,1.47-3.42h2.48c-.89,1.54-2.28,2.75-3.95,3.42Z"/></svg>
+        English
+        <svg class="icon icon-24" viewBox="0 0 24 24"><polygon points="17.66 10.42 12 16.08 6.34 10.42 7.76 9.01 12 13.25 16.24 9.01 17.66 10.42"/></svg>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <div class="footer-logo">
+        <img class="footer-logo-mark" src="design-system/EP_logo_mute_white.svg" alt="">
+        <span class="logo-text"><span>European</span><span>Parliament</span></span>
+      </div>
+      <div class="footer-links">
+        <a href="#">Accessibility</a>
+        <a href="#">Legal notice</a>
+        <a href="#">Sitemap</a>
+        <a href="#">Privacy policy</a>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  const METSOLA_RESULTS = [{"agenda": true, "label": "Roberta Metsola next meeting", "wd": "Mon", "num": 12, "long": "Monday, 12 October 2026", "time": "14:30", "t": "President Metsola addresses the Opening Session of the European Week of Regions and Cities 2026, via video", "loc": "Taormina, Italy (EPP Group Study Days)", "type": "President’s agenda", "src": "agenda-validated.html?day=2026-10-12&type=President%E2%80%99s%20agenda"}, {"src": "agenda-validated.html?day=2026-10-08&type=President%E2%80%99s%20agenda", "d": "08-10-2026", "k": "President's agenda", "t": "President Metsola presides over the Conference of Presidents meeting", "s": "President's agenda of Thursday 8 October 2026, 10:00, Strasbourg: President Roberta Metsola presides over the Conference of Presidents meeting.", "h": "#"}, {"d": "07-10-2026", "k": "Videos", "t": "Opening statement by Roberta METSOLA, EP President on the third anniversary of the 7th October attacks", "s": "Video (01:56): opening statement by Roberta Metsola, President of the European Parliament, on the third anniversary of the 7th October attacks.", "h": "search-videos.html"}, {"d": "07-10-2026", "k": "President's agenda", "t": "President Metsola receives Tony Murphy, President of the European Court of Auditors", "s": "President's agenda of Wednesday 7 October 2026, 17:00, Strasbourg: President Roberta Metsola receives Tony Murphy.", "h": "#"}, {"d": "07-10-2026", "k": "President's agenda", "t": "President Metsola receives Hamish Falconer, Minister for Intergovernmental Relations and European Relations of the United Kingdom", "s": "President's agenda of Wednesday 7 October 2026, 14:30, Strasbourg.", "h": "#"}, {"d": "07-10-2026", "k": "President's agenda", "t": "President Metsola signs Legislative Acts", "s": "President's agenda of Wednesday 7 October 2026, 14:00, Strasbourg: President Roberta Metsola signs Legislative Acts.", "h": "#"}, {"d": "06-10-2026", "k": "Speeches", "t": "Portugal may sit on the western edge of our continent, but its place is at the heart of our common project", "s": "Welcoming the Prime Minister of Portugal Luís Montenegro to the European Parliament, the President of the European Parliament Roberta Metsola expressed Parliament's solidarity with everyone affected by the natural disasters in Portugal.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/portugal-may-sit-on-the-western-edge-of-our-continent-but-its-place-is-at-the-heart-of-our-common-project.html"}, {"d": "06-10-2026", "k": "Videos", "t": "Press point by Roberta METSOLA, EP President, and Luís MONTENEGRO, Portuguese Prime Minister", "s": "Video (16:55): press point by Roberta Metsola, EP President, and Luís Montenegro, Portuguese Prime Minister.", "h": "search-videos.html"}, {"d": "06-10-2026", "k": "Videos", "t": "Roberta METSOLA, EP President meets with Luís MONTENEGRO, Portuguese Prime Minister: arrival, welcome, roundtable and extracts from the This is Europe debate", "s": "Video (05:43): arrival, welcome and roundtable of the meeting between Roberta Metsola and Luís Montenegro.", "h": "search-videos.html"}, {"d": "06-10-2026", "k": "Photos", "t": "Roberta METSOLA, EP President meets with Sir William BROWDER, Head of Global Magnitsky", "s": "Photoset (4 photos): Roberta Metsola, President of the European Parliament, meets Sir William Browder, Head of Global Magnitsky Justice Campaign.", "h": "search-photos.html"}, {"d": "06-10-2026", "k": "Photos", "t": "Roberta METSOLA, EP President meets with Tim COOK, Executive Chair of Apple", "s": "Photoset (5 photos): Roberta Metsola, President of the European Parliament, meets Tim Cook, Executive Chair of Apple.", "h": "search-photos.html"}, {"d": "06-10-2026", "k": "President's agenda", "t": "President Metsola receives Sir William Browder, Global Magnitsky Justice Campaign", "s": "President's agenda of Tuesday 6 October 2026, 16:30, Strasbourg.", "h": "#"}, {"d": "06-10-2026", "k": "President's agenda", "t": "President Metsola receives Tim Cook, Executive Chair of Apple Inc.", "s": "President's agenda of Tuesday 6 October 2026, 14:15, Strasbourg.", "h": "#"}, {"d": "05-10-2026", "k": "Press releases", "t": "President Metsola opened the 5-8 October plenary session", "s": "“Violence against women, online or offline, is intolerable and deplorable. This House stands against it with every measure available” said Metsola in her opening statement.", "h": "https://www.europarl.europa.eu/news/en/press-room/20261002IPR47891/president-metsola-opened-the-5-8-october-plenary-session"}, {"d": "05-10-2026", "k": "Speeches", "t": "Violence against women - online or offline - is intolerable", "s": "The European Parliament stands strong against the targeting of women by deepfake pornography websites that publish false and altered images of mainly female Members of the European Parliament. Speech by President Roberta Metsola.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/violence-against-women-online-or-offline-is-intolerable.html"}, {"d": "05-10-2026", "k": "Speeches", "t": "Parliament welcomes the release of Dr Gubad Ibadoghlu", "s": "Opening the Plenary Session in Strasbourg, the President of the European Parliament Roberta Metsola said that Parliament welcomes the release of Dr Gubad Ibadoghlu and calls for all charges to be dropped.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/parliament-welcomes-the-release-of-dr-gubad-ibadoghlu.html"}, {"d": "02-10-2026", "k": "Videos", "t": "Official visit by Roberta METSOLA, EP President to The Hague (The Netherlands) - Meeting with Rob JETTEN, Dutch Prime Minister: extracts", "s": "Video (01:56): extracts of the meeting between Roberta Metsola, EP President, and Rob Jetten, Dutch Prime Minister, in The Hague.", "h": "search-videos.html"}, {"d": "02-10-2026", "k": "Videos", "t": "Official visit by Roberta METSOLA, EP President to The Hague (The Netherlands) - Inauguration of the Europa Experience: extracts", "s": "Video (02:59): extracts of the inauguration of the Europa Experience in The Hague during the official visit of Roberta Metsola.", "h": "search-videos.html"}, {"d": "02-10-2026", "k": "Videos", "t": "Official visit by Roberta METSOLA, EP President to Eindhoven (Netherlands) - Visit of ASML, Dutch technology company: extracts", "s": "Video (02:54): extracts of the visit of ASML in Eindhoven by Roberta Metsola, President of the European Parliament.", "h": "search-videos.html"}, {"d": "02-10-2026", "k": "President's agenda", "t": "President Metsola meets with the Prime Minister of the Netherlands, Rob Jetten", "s": "President's agenda of Friday 2 October 2026, 17:00, The Hague.", "h": "#"}, {"d": "01-10-2026", "k": "President's agenda", "t": "President Metsola addresses an event on the 40 years of the Legal Service of the European Parliament", "s": "President's agenda of Thursday 1 October 2026, 11:15, Brussels.", "h": "#"}, {"d": "30-09-2026", "k": "Speeches", "t": "Democracy works best when we work together", "s": "Closing the second edition of the European Parliamentary Democracy Forum at the European Parliament in Brussels, the President of the European Parliament Roberta Metsola said that Parliaments and civil society together will keep pushing for a stronger, fairer democracy.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/democracy-works-best-when-we-work-together.html"}, {"d": "30-09-2026", "k": "President's agenda", "t": "President Metsola presides over the Conference of Presidents meeting", "s": "President's agenda of Wednesday 30 September 2026, 16:00, Brussels.", "h": "#"}, {"d": "29-09-2026", "k": "President's agenda", "t": "President Metsola inaugurates the David Maria Sassoli Building", "s": "President's agenda of Tuesday 29 September 2026, 15:00, Brussels.", "h": "#"}, {"d": "29-09-2026", "k": "President's agenda", "t": "President Metsola receives Mindaugas Sinkevičius, Prime Minister of Lithuania", "s": "President's agenda of Tuesday 29 September 2026, 11:30, Brussels.", "h": "#"}, {"d": "23-09-2026", "k": "Speeches", "t": "Peace without freedom, dignity and justice is no real peace at all - President Metsola", "s": "Addressing the Sixth International Crimea Platform Summit in New York, the President of the European Parliament Roberta Metsola said that until just and lasting peace is secured, Europe will stand with Ukraine.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/peace-without-freedom-dignity-and-justice-is-no-real-peace-at-all-president-metsola.html"}, {"d": "22-09-2026", "k": "Speeches", "t": "In times like these, Europe's answer is cooperation over conflict - President Metsola in New York", "s": "Addressing the Clinton Global Initiatives, the President of the European Parliament Roberta Metsola said that in an era of permacrisis, Europe's way is that of partnership with allies across the world.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/in-times-like-these-europe-s-answer-is-cooperation-over-conflict-president-metsola-in-new-york.html"}, {"d": "17-09-2026", "k": "Speeches", "t": "Together we can break new and exciting ground - President Metsola welcomes Canadian Prime Minister Mark Carney to the European Parliament", "s": "Welcoming the Prime Minister of Canada Mark Carney to the European Parliament in Strasbourg, President Roberta Metsola said there is potential for better cooperation on so many different levels, from defence and trade to energy, education and research.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/together-we-can-break-new-and-exciting-ground-president-metsola-welcomes-canadian-prime-minister-mark-carney-to-the-european-par.html"}, {"d": "16-09-2026", "k": "Speeches", "t": "This is Europe's moment to live up to people's expectations", "s": "Opening the State of the European Union debate at the European Parliament in Strasbourg, President Metsola said that today is about deciding what kind of Europe we want and about finding the courage to build it.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/this-is-europe-s-moment-to-live-up-to-people-s-expectations-1.html"}, {"d": "14-09-2026", "k": "Speeches", "t": "Parliament thanks the brave firefighters and emergency workers following the extreme heatwaves in summer", "s": "At the opening of the Plenary Session in Strasbourg, the President of the European Parliament Roberta Metsola thanked the brave firefighters and emergency workers who crossed borders and risked their lives to help others during the extreme heatwaves this summer.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/parliament-thanks-the-brave-firefighters-and-emergency-workers-following-the-extreme-heatwaves-in-summer.html"}, {"d": "14-09-2026", "k": "Speeches", "t": "You are not alone: Parliament with a strong message to the people of Iran", "s": "Referring to the sentence against Iranian twin sisters Taraneh and Romina Rahimi, the President of the European Parliament Roberta Metsola said that the European Parliament will keep amplifying the voice of the people of Iran demanding freedom.", "h": "https://the-president.europarl.europa.eu/home/ep-newsroom/pagecontent/actualites/you-are-not-alone-parliament-with-a-strong-message-to-the-people-of-iran.html"}];
+  const CLIMATE_RESULTS = [{"d": "12-10-2026", "k": "Photos", "h": "search-photos.html", "t": "ENVI ENVE - Building a sustainable future: funding environmental and climate policies in the next Multiannual Financial Framework", "s": "Photoset (26 photos): ENVI ENVE joint event on funding environmental and climate policies in the next Multiannual Financial Framework."}, {"d": "06-10-2026", "k": "Plenary session agenda", "h": "agenda-validated.html?day=2026-10-06&type=Plenary%20session", "src": "agenda-validated.html?day=2026-10-06&type=Plenary%20session", "t": "Question Time (Commission) – Implementation of the Methane Regulation", "s": "Scrutiny session, plenary session, Strasbourg, Tuesday 6 October 2026, 15:00 – 16:00."}, {"d": "06-10-2026", "k": "Photos", "h": "search-photos.html", "t": "EP Plenary session - October I 2026 - Implementation of the Methane Regulation", "s": "Photoset (29 photos): plenary debate on the implementation of the Methane Regulation."}, {"d": "05-10-2026", "k": "Committees agenda", "h": "agenda-validated.html?day=2026-10-05&type=Committees", "src": "agenda-validated.html?day=2026-10-05&type=Committees", "t": "Commission Delegated Regulation establishing the certification methodologies for carbon farming activities", "c": "ENVI", "s": "Votes – (2026/2819(DEA)) – Adoption of motion for a resolution. Committee on the Environment, Climate and Food Safety, Strasbourg, Monday 5 October 2026, 19:00 – 21:15."}, {"d": "01-10-2026", "k": "Committees agenda", "h": "agenda-validated.html?day=2026-10-01&type=Committees", "src": "agenda-validated.html?day=2026-10-01&type=Committees", "t": "EU Emissions Trading System including monitoring, reporting and verification of maritime transport", "c": "ENVI", "s": "Debate – (2026/0210(COD)) (2026/0212(COD)) – Consideration of draft report – Rapporteur: Peter LIESE. Brussels, Thursday 1 October 2026, 09:15 – 12:30."}, {"d": "23-09-2026", "k": "Videos", "h": "search-videos.html", "t": "Bloomberg Green New York: Conversation with Roberta METSOLA, EP President", "s": "Video (20:15): conversation with the President of the European Parliament at Bloomberg Green, New York."}, {"d": "16-09-2026", "k": "Videos", "h": "search-videos.html", "t": "State of the European Union debate 2026 - #SOTEU2026: statement by Ursula von der LEYEN, President of the EC, on Climate", "s": "Video (08:41): the climate part of the President of the European Commission’s statement."}, {"d": "16-09-2026", "k": "Videos", "h": "search-videos.html", "t": "State of the European Union debate 2026 - #SOTEU2026: statement by Ursula von der LEYEN, President of the EC (full version)", "s": "Video (1:13:43): full statement, including climate and the 2040 target."}, {"d": "September 2026", "k": "Publications", "h": "https://eprs.europarl.europa.eu/contents/publications/EPRS/2026/09/EPRS_BRI(2026)791469.html", "t": "European integrated framework for climate resilience", "s": "EPRS briefing on the climate resilience package the Commission is expected to present on 20 October 2026: a communication, a legislative proposal, a recommendation and a Commission Decision."}, {"d": "05-02-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260205IPR33620/", "t": "EU climate law: a 2040 emissions reduction target of 90% for the EU", "s": "MEPs backed a political agreement with Council on amending the EU Climate Law by 413 votes to 226 and 12 abstentions: a 90% net emissions cut by 2040 compared with 1990."}, {"d": "09-11-2023", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20231109STO09918/carbon-removals-extra-measures-to-reach-climate-neutrality", "t": "Carbon removals: extra measures to reach climate neutrality", "s": "Topics article on the EU measures to remove carbon from the atmosphere."}, {"d": "28-09-2023", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20230928STO06003/green-bonds-more-transparency-no-greenwashing", "t": "Green bonds: more transparency, no greenwashing", "s": "Topics article on the rules for European green bonds."}, {"d": "22-03-2023", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20230322STO78109/how-the-eu-reduces-greenhouse-gases-beyond-co2", "t": "How the EU reduces greenhouse gases beyond CO2", "s": "Topics article on the EU action against greenhouse gases other than carbon dioxide."}, {"d": "16-03-2023", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20230316STO77629/climate-change-the-greenhouse-gases-causing-global-warming", "t": "Climate change: the greenhouse gases causing global warming", "s": "Topics article explaining which greenhouse gases cause global warming."}, {"d": "19-10-2022", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20221019STO44572/eu-ban-on-sale-of-new-petrol-and-diesel-cars-from-2035-explained", "t": "EU ban on sale of new petrol and diesel cars from 2035 explained", "s": "Topics article on the 2035 target for new cars."}, {"d": "19-05-2022", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20220519STO30401/social-climate-fund-parliament-s-ideas-for-a-just-energy-transition", "t": "Social Climate Fund: Parliament’s ideas for a just energy transition", "s": "Topics article on the Social Climate Fund."}, {"d": "27-05-2022", "k": "Photos", "h": "search-photos.html", "t": "Cows, bulls, calves, sheeps, products -meat and pastas- and general views in a farm surrounded by windmills in Villers-le-Bouillet, near Liege, Belgium", "s": "Photoset (61 photos): stockshots of a farm surrounded by windmills near Liège, with livestock and local products."}, {"d": "03-03-2021", "k": "Topics", "h": "https://www.europarl.europa.eu/topics/en/article/20210303STO99110/carbon-leakage-preventing-firms-from-avoiding-emissions-rules", "t": "Carbon leakage: preventing firms from avoiding emissions rules", "s": "Topics article on the carbon border adjustment mechanism."}];
+  const PANEL_METSOLA = "      <aside class=\"kpanel\" aria-label=\"Roberta METSOLA\">\n        <img class=\"kpanel-photo\" src=\"https://www.europarl.europa.eu/mepphoto/118859.jpg\" alt=\"Roberta METSOLA\" width=\"144\" height=\"180\">\n        <div class=\"kpanel-text\">\n          <h2 class=\"kpanel-name\"><a href=\"https://www.europarl.europa.eu/meps/en/118859/ROBERTA_METSOLA/home\" target=\"_blank\" rel=\"noopener\">Roberta METSOLA</a></h2>\n          <div class=\"kpanel-cols\">\n            <div class=\"kpanel-col\"><p class=\"kpanel-role\">President of European Parliament</p>\n          <p class=\"kpanel-plain\">EPP</p>\n          <p class=\"kpanel-plain\">Malta</p>\n            </div>\n            \n          </div>\n        </div>\n      </aside>\n      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261006_EP-212362A_DLL_021/20261006_EP-212362A_DLL_021-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">4</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Roberta METSOLA, EP President meets with Sir William BROWDER, Head of Global Magnitsky</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261006_EP-212361A_DLL_087/20261006_EP-212361A_DLL_087-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">5</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Roberta METSOLA, EP President meets with Tim COOK, Executive Chair of Apple</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261006_EP-211404D_JBB_PBU_014/20261006_EP-211404D_JBB_PBU_014-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">65</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">EP Plenary session - October I 2026 - Voting session</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n      <div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98802091/1791368551573_I295746%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">01:56</span></span></span><span class=\"result-caption\">Opening statement by Roberta METSOLA, EP President on the third anniversary of the 7th October attacks</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98795623/1791361713984_I295419%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">04:53</span></span></span><span class=\"result-caption\">An ambitious MFF 2028-2034 for a strong and resilient Europe: extracts from the debate</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98692715/1790957132016_I295044%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">01:56</span></span></span><span class=\"result-caption\">Official visit by Roberta METSOLA, EP President to The Hague (The Netherlands) - Meeting with Rob JETTEN, Dutch Prime Minister: extracts</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const TRAN_RESULTS = [{"d": "07-10-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20261002IPR47903/", "t": "Updated rules to boost uptake of low-emission heavy-duty vehicles", "s": "Parliament gave final approval to clarified road-charge rules for low-emission trucks and buses, applicable until 30 June 2031."}, {"d": "05-10-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20261002IPR47883/", "t": "Boosting the development of high-speed rail in Europe", "s": "MEPs call for a European high-speed rail network that is interoperable, innovative, accessible and intermodal."}, {"d": "05-10-2026", "k": "Committees agenda", "h": "agenda-validated.html?day=2026-10-05&type=Committees", "src": "agenda-validated.html?day=2026-10-05&type=Committees", "t": "Connecting Europe through high-speed rail", "c": "TRAN", "s": "Vote – (2026/2003(INI)) – Adoption of draft report – Rapporteur: Vicent MARZÀ IBAÑEZ (Greens/EFA, ES). Strasbourg, Monday 5 October 2026, 19:30 – 20:30."}, {"d": "28-09-2026", "k": "Photos", "h": "search-photos.html?q=TRAN", "t": "TRAN - Exchange of views with the European Ombudsman Teresa Anjinho", "s": "Photoset (27 photos): exchange of views of the Committee on Transport and Tourism with the European Ombudsman."}, {"d": "18-09-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260915IPR47548/", "t": "Strengthening ties with Greenland on transport and tourism", "s": "A TRAN delegation led by MEP Jens Gieseke will visit Greenland on 21–24 September to discuss transport connectivity and tourism."}, {"d": "16-07-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260709IPR46412/", "t": "Irish Presidency debriefs European Parliament committees on its priorities", "s": "Ministers present the Irish Presidency’s priorities to parliamentary committees, including TRAN."}, {"d": "08-07-2026", "k": "Videos", "h": "search-videos.html?q=TRAN", "t": "Press conference by Michał SZCZERBA (EPP, PL) and Roberts ZĪLE (ECR, LV), co-rapporteurs on Military mobility", "s": "Video (36:59): press conference on the new EU military mobility rules."}, {"d": "07-07-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260703IPR46273/", "t": "European Parliament achieves upgrade to air passenger rights", "s": "Faster compensation for delayed flights, free child seating, and fares that include carry-on luggage will become part of the EU air passenger rulebook."}, {"d": "07-07-2026", "k": "Videos", "h": "search-videos.html?q=TRAN", "t": "Press Conference by Andrey NOVAKOV (EPP, BG), rapporteur and Virginijus SINKEVIČIUS (Greens / EFA, LT), vice-chair of the TRAN Committee on Air passenger’s rights", "s": "Video (18:49): press conference after the final vote on the air passenger rights review."}, {"d": "07-07-2026", "k": "Photos", "h": "search-photos.html?q=TRAN", "t": "Press conference on Air passenger's rights", "s": "Photoset (19 photos): press conference on the air passenger rights review."}, {"d": "06-07-2026", "k": "Videos", "h": "search-videos.html?q=TRAN", "t": "Air Passenger Rights: opening statements by Andrey NOVAKOV (EPP, BG), rapporteur and Apostolos TZITZIKOSTAS, European Commissioner for Sustainable Transport and Tourism", "s": "Video (09:11): opening statements of the plenary debate on air passenger rights."}, {"d": "06-07-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260706IPR46303/", "t": "Military mobility: press conference on Wednesday at 10.30", "s": "Co-rapporteurs Michał Szczerba and Roberts Zīle will brief journalists on new EU military mobility rules ahead of possible interinstitutional talks."}, {"d": "03-07-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260702IPR46251/", "t": "Press conference on updated air passenger rights on Tuesday at 14.00", "s": "Negotiators Andrey Novakov and Virginijus Sinkevičius will brief journalists after the final vote on the air passenger rights review."}, {"d": "02-07-2026", "k": "Videos", "h": "search-videos.html?q=TRAN", "t": "Infoclip: Transport of goods-air freight", "s": "Video (06:16): stockshots on air freight."}, {"d": "30-06-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260629IPR46206/", "t": "Deal on toll reduction for low-emission trucks and buses", "s": "Parliament and Council negotiators reached a provisional agreement on a 75% toll reduction for low-emission trucks and buses until 30 June 2031."}, {"d": "30-06-2026", "k": "Videos", "h": "search-videos.html?q=TRAN", "t": "Infoclip: Public transport in Europe", "s": "Video (06:41): stockshots on public transport in Europe."}, {"d": "25-06-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260622IPR45931/", "t": "Deal on better passenger rights protection", "s": "Negotiators agreed to close enforcement gaps in EU passenger rights and improve awareness of rights during travel disruption."}, {"d": "23-06-2026", "k": "Press releases", "h": "https://www.europarl.europa.eu/news/en/press-room/20260622IPR45908/", "t": "MEPs in favour of facilitating military mobility", "s": "MEPs gave a first green light to plans supporting the transport of military equipment, troops and assets across the EU."}, {"d": "12-03-2026", "k": "Photos", "h": "search-photos.html?q=TRAN", "t": "EP Plenary session - Rail transport safety in the EU – lessons learnt from the Adamuz accident and three years after the Tempi tragedy", "s": "Photoset (39 photos): plenary debate on rail transport safety."}];
+  const PANEL_TRAN = "      <aside class=\"kpanel kpanel--topic\" aria-label=\"Committee on Transport and Tourism\">\n        <div class=\"kpanel-text\">\n          <h2 class=\"kpanel-name\"><a href=\"https://www.europarl.europa.eu/committees/en/tran/home/highlights\" target=\"_blank\" rel=\"noopener\">Committee on Transport and Tourism (TRAN)</a></h2>\n          <p><span class=\"kpanel-lab\">Contact:</span> <a href=\"mailto:tran-secretariat@europarl.europa.eu\">tran-secretariat@europarl.europa.eu</a></p>\n          <p><span class=\"kpanel-lab\">Next meeting:</span> Monday, 19 October 2026 \u2013 extraordinary meeting, Strasbourg</p>\n          <p><span class=\"kpanel-lab\">Chair:</span> Elissavet VOZEMBERG-VRIONIDI (EPP, Greece) \u2013 <a href=\"https://www.europarl.europa.eu/committees/en/tran/home/members\" target=\"_blank\" rel=\"noopener\">Full list of members</a></p>\n          <p><a href=\"https://www.europarl.europa.eu/committees/en/tran/home/highlights\" target=\"_blank\" rel=\"noopener\">Homepage</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://www.europarl.europa.eu/committees/en/tran/home/members\" target=\"_blank\" rel=\"noopener\">List of members</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://www.europarl.europa.eu/committees/en/tran/events/events-hearings\" target=\"_blank\" rel=\"noopener\">Events</a></p>\n        </div>\n      </aside>\n      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260928_EP-211376B_AH1_0219/20260928_EP-211376B_AH1_0219-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">27</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">TRAN - Exchange of views with the European Ombudsman Teresa Anjinho</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260707_EP-208350A_EGO_0373/20260707_EP-208350A_EGO_0373-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">19</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Press conference on Air passenger's rights</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260312_EP-200502C_FM2_PST_058/20260312_EP-200502C_FM2_PST_058-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">39</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">EP Plenary session - Rail transport safety in the EU \u2013 lessons learnt from the Adamuz accident and three years after the Tempi tragedy</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n<div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96759333/1783502463930_I292429%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">36:59</span></span></span><span class=\"result-caption\">Press conference by Micha\u0142 SZCZERBA (EPP, PL) and Roberts Z\u012aLE (ECR, LV), co-rapporteurs on Military mobility</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96766146/1783513091323_I292253%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">18:49</span></span></span><span class=\"result-caption\">Press Conference by Andrey NOVAKOV (EPP, BG), rapporteur and Virginijus SINKEVI\u010cIUS (Greens / EFA, LT), vice-chair of the TRAN Committee on Air passenger\u2019s rights</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96709394/1783352813391_I292237%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">09:11</span></span></span><span class=\"result-caption\">Air Passenger Rights: opening statements by Andrey NOVAKOV (EPP, BG), rapporteur and Apostolos TZITZIKOSTAS, European Commissioner for Sustainable Transport and Tourism</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const EPP_RESULTS = [{"agenda": true, "label": "EPP next meeting", "wd": "Tue", "num": 13, "long": "Tuesday, 13 October 2026", "time": "09:30", "t": "President Metsola addresses the EPP Group Study Days", "type": "President’s agenda", "loc": "Taormina, Italy", "src": "agenda-validated.html?day=2026-10-13&type=President%E2%80%99s%20agenda"}, {"d": "06-10-2026", "k": "Photos", "h": "search-photos.html?q=EPP", "t": "Press briefing EPP - October part I 2026", "s": "Photoset (15 photos): press briefing of the EPP Group during the October plenary session."}, {"d": "06-10-2026", "k": "Videos", "h": "search-videos.html?q=EPP", "t": "Press briefing by Manfred WEBER,(EPP, DE), EPP Group Chair", "s": "Video (08:20): press briefing of the Chair of the EPP Group."}, {"d": "16-09-2026", "k": "Videos", "h": "search-videos.html?q=EPP", "t": "State of the European Union debate 2026 - #SOTEU2026: statement by Manfred WEBER (EPP, DE), EPP Chair", "s": "Video (06:01): statement of the EPP Chair in the debate."}, {"d": "09-09-2026", "k": "Videos", "h": "search-videos.html?q=EPP", "t": "Preparation of the State of the European Union 2026 debate: statement by Manfred WEBER (EPP, DE), Chair of EPP Group", "s": "Video (01:10): statement ahead of the debate."}, {"d": "08-09-2026", "k": "Photos", "h": "search-photos.html?q=EPP", "t": "Roberta METSOLA, EP President addresses the EPP Group Youth Week", "s": "Photoset (18 photos): the President of the European Parliament addresses the EPP Group Youth Week."}, {"d": "07-07-2026", "k": "Videos", "h": "search-videos.html?q=EPP", "t": "Press briefing by Manfred WEBER (EPP, DE), EPP Group President", "s": "Video (23:24): press briefing of the EPP Group President."}, {"d": "18-06-2026", "k": "Videos", "h": "search-videos.html?q=EPP", "t": "EPP leaders meet ahead of the European Council meeting: arrivals and doorsteps", "s": "Video (03:38): arrivals and doorsteps of the EPP leaders."}, {"d": "08-03-2022", "k": "Photos", "h": "search-photos.html?q=EPP", "t": "Press conference Chair on Launching of the EPP Cohesion Monitoring Group", "s": "Photoset (10 photos): launch of the EPP Cohesion Monitoring Group."}, {"d": "", "k": "About Parliament", "h": "https://www.europarl.europa.eu/meps/en/hemicycle", "t": "Hemicycle: where MEPs sit", "s": "Seating plan of the plenary chamber in Strasbourg, by political group."}, {"d": "", "k": "About Parliament", "h": "https://www.europarl.europa.eu/about-parliament/en/organisation-and-rules/organisation/political-groups", "t": "Political groups in the European Parliament", "s": "Overview of the political groups, including the Group of the European People’s Party (Christian Democrats)."}];
+  const PANEL_EPP = "<div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261006_EP-211410A_PBU_256/20261006_EP-211410A_PBU_256-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">15</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Press briefing EPP - October part I 2026</span></a><a class=\"result-card\" href=\"search-photos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260908_EP-210362A_DLL_463/20260908_EP-210362A_DLL_463-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">18</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Roberta METSOLA, EP President addresses the EPP Group Youth Week</span></a><a class=\"result-card\" href=\"search-photos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/18542719/1646764932945_20220308_EP-127800A_CCR_0039_MOBILE.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">10</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Press conference Chair on Launching of the EPP Cohesion Monitoring Group</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html?q=EPP\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n      <div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98742426/1791269222264_I295291%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">08:20</span></span></span><span class=\"result-caption\">Press briefing by Manfred WEBER,(EPP, DE), EPP Group Chair</span></a><a class=\"result-card\" href=\"search-videos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98288828/1789548571638_I293065%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">06:01</span></span></span><span class=\"result-caption\">State of the European Union debate 2026 - #SOTEU2026: statement by Manfred WEBER (EPP, DE), EPP Chair</span></a><a class=\"result-card\" href=\"search-videos.html?q=EPP\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96719581/1783411621389_I292087%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">23:24</span></span></span><span class=\"result-caption\">Press briefing by Manfred WEBER (EPP, DE), EPP Group President</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html?q=EPP\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const DCAM_RESULTS = [{"d": "08-10-2026", "k": "Photos", "h": "search-photos.html", "t": "EU-Panama meeting - Interparliamentary meeting", "s": "Photoset (24 photos): EU-Panama interparliamentary meeting, Strasbourg."}, {"d": "", "k": "Delegations", "h": "https://www.europarl.europa.eu/delegations/en/dcam/home", "t": "Delegation for relations with the countries of Central America, including the EU-Central America Association Parliamentary Committee (DCAM)", "s": "Home page of the delegation: membership, activities, documents and contacts."}, {"d": "", "k": "Delegations", "h": "https://www.europarl.europa.eu/delegations/en/dcam/members", "t": "DCAM - Members", "s": "Chair, vice-chairs and members of the delegation."}, {"d": "25-06-2026", "k": "Photos", "h": "search-photos.html", "t": "Delegation for relations with the countries of Central America - Interparliamentary meeting EU-Honduras", "s": "Photoset (32 photos): interparliamentary meeting EU-Honduras."}, {"d": "", "k": "Delegations", "h": "https://www.europarl.europa.eu/delegations/en/dcam/activities/inter-parliamentary", "t": "DCAM - Inter-parliamentary meetings", "s": "Meetings of the delegation with the parliaments of Central America."}, {"d": "", "k": "Delegations", "h": "https://www.europarl.europa.eu/delegations/en/dcam/activities/ordinary-meetings", "t": "DCAM - Ordinary meetings", "s": "Ordinary meetings of the delegation."}, {"d": "", "k": "Delegations", "h": "https://www.europarl.europa.eu/delegations/en/dcam/activities/calendar", "t": "DCAM - Calendar", "s": "Calendar of the delegation’s activities."}, {"d": "", "k": "Videos", "h": "search-videos.html", "t": "Video message by Roberta METSOLA, EP President: Closing speech at the 14th Euro Latin-American Parliamentary Assembly (EUROLAT)", "s": "Video (03:25): closing speech at the EUROLAT Assembly."}];
+  const PANEL_DCAM = "      <aside class=\"kpanel kpanel--topic\" aria-label=\"Delegation for relations with the countries of Central America\">\n        <div class=\"kpanel-text\">\n          <h2 class=\"kpanel-name\"><a href=\"https://www.europarl.europa.eu/delegations/en/dcam/home\" target=\"_blank\" rel=\"noopener\">Delegation for relations with the countries of Central America, including the EU-Central America Association Parliamentary Committee (DCAM)</a></h2>\n          <p><span class=\"kpanel-lab\">Contact:</span> <a href=\"mailto:dcam@europarl.europa.eu\">dcam@europarl.europa.eu</a></p>\n          <p><span class=\"kpanel-lab\">Chair:</span> Diana RIBA I GINER (Greens/EFA, Spain) \u2013 <a href=\"https://www.europarl.europa.eu/delegations/en/dcam/members\" target=\"_blank\" rel=\"noopener\">Full list of members</a></p>\n          <p><a href=\"https://www.europarl.europa.eu/delegations/en/dcam/home\" target=\"_blank\" rel=\"noopener\">Homepage</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://www.europarl.europa.eu/delegations/en/dcam/members\" target=\"_blank\" rel=\"noopener\">Members</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://www.europarl.europa.eu/delegations/en/dcam/activities/ordinary-meetings\" target=\"_blank\" rel=\"noopener\">Meetings</a></p>\n        </div>\n      </aside>\n      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261008_EP-211873A_STP_0162/20261008_EP-211873A_STP_0162-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">24</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">EU-Panama meeting - Interparliamentary meeting</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260625_EP-207109A_AR2_0343/20260625_EP-207109A_AR2_0343-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">32</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Delegation for relations with the countries of Central America - Interparliamentary meeting EU-Honduras</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n<div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/44184091/1656062173448_EP134066_mobile.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">03:25</span></span></span><span class=\"result-caption\">Video message by Roberta METSOLA, EP President: Closing speech at the 14th Euro Latin-American Parliamentary Assembly (EUROLAT)</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/77735370/1724414508932_I163446_mobile.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">04:39</span></span></span><span class=\"result-caption\">Response to the caravan of Central American migrants at the Mexican border: extracts from the debate</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const DUB_RESULTS = [{"d": "23-06-2026", "k": "Videos", "h": "search-videos.html", "t": "Press Conference by Roberta METSOLA, EP President and Micheál MARTIN, Irish Prime Minister (Taoiseach): Q&A", "s": "Video (18:05): questions and answers of the press conference in Dublin."}, {"d": "", "k": "Liaison offices", "h": "https://dublin.europarl.europa.eu/en", "t": "European Parliament Liaison Office in Ireland", "s": "News, events, youth outreach and information on the Europa Experience, from the office in Dublin."}, {"d": "", "k": "Liaison offices", "h": "https://dublin.europarl.europa.eu/en/news/European-Parliament-Office-has-moved", "t": "European Parliament Office has moved", "s": "The office is now based in Europe House, 5 Balfe Street, Dublin, with the Europa Experience visitor centre."}, {"d": "", "k": "Liaison offices", "h": "https://dublin.europarl.europa.eu/en/events/north-circular-screening", "t": "North Circular screening", "s": "Event organised by the European Parliament Liaison Office in Ireland."}, {"d": "", "k": "Liaison offices", "h": "https://dublin.europarl.europa.eu/en/events/westerly-exhibition", "t": "Westerly exhibition", "s": "Exhibition organised by the European Parliament Liaison Office in Ireland."}, {"d": "23-06-2026", "k": "Photos", "h": "search-photos.html", "t": "EP Conference of Presidents meets with the incoming Irish Presidency of the Council - Meeting with Micheál MARTIN, Irish Prime Minister", "s": "Photoset (35 photos): meeting with the Irish Prime Minister."}, {"d": "", "k": "Liaison offices", "h": "https://liaison-offices.europarl.europa.eu/en/offices", "t": "Liaison offices of the European Parliament", "s": "The offices of the European Parliament in the member states."}];
+  const PANEL_DUB = "      <aside class=\"kpanel kpanel--topic\" aria-label=\"European Parliament Liaison Office in Ireland\">\n        <div class=\"kpanel-text\">\n          <h2 class=\"kpanel-name\"><a href=\"https://dublin.europarl.europa.eu/en\" target=\"_blank\" rel=\"noopener\">European Parliament Liaison Office in Ireland</a></h2>\n          <p><span class=\"kpanel-lab\">Address:</span> 5 Balfe Street, Dublin D02 E7K4, Ireland</p>\n          <p><a href=\"https://dublin.europarl.europa.eu/en\" target=\"_blank\" rel=\"noopener\">Homepage</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://dublin.europarl.europa.eu/en#events\" target=\"_blank\" rel=\"noopener\">Events</a> <span class=\"kpanel-sep\" aria-hidden=\"true\">|</span> <a href=\"https://dublin.europarl.europa.eu/en#news\" target=\"_blank\" rel=\"noopener\">Activities</a></p>\n        </div>\n      </aside>\n      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260623_EP-207874A_DLL_2225/20260623_EP-207874A_DLL_2225-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">35</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">EP Conference of Presidents meets with the incoming Irish Presidency of the Council - Meeting with Miche\u00e1l MARTIN, Irish Prime Minister</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20250128_EP-178479A_AR1_0003/20250128_EP-178479A_AR1_0003-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">92</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Joint meeting - Heads of EC Representations and Heads of EP Liaison Offices</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261002_EP-212038A_DLL_912/20261002_EP-212038A_DLL_912-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">20</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Official visit by Roberta METSOLA, EP President to The Hague (Netherlands) - Inauguration of the Europa Experience</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n<div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96521313/1782238349612_I291852%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">18:05</span></span></span><span class=\"result-caption\">Press Conference by Roberta METSOLA, EP President and Miche\u00e1l MARTIN, Irish Prime Minister (Taoiseach): Q&A</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96520410/1782235879366_I289963%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">07:44</span></span></span><span class=\"result-caption\">Press Conference by Roberta METSOLA, EP President and Miche\u00e1l MARTIN, Irish Prime Minister (Taoiseach): opening statements</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/96558447/1782489099119_I291910%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">06:29</span></span></span><span class=\"result-caption\">Infoclip: Housing crisis in Europe (Lisbon, Bratislava and Dublin)</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const PAR_RESULTS = [{"d": "", "k": "Visiting", "h": "https://visiting.europarl.europa.eu/en/brussels/parlamentarium", "t": "Parlamentarium", "s": "The visitor centre of the European Parliament in Brussels: opening hours, practical information and visit planning."}, {"d": "", "k": "Visiting", "h": "https://brussels-parlamentarium.booking.europarl.europa.eu/", "t": "Parlamentarium - book your visit", "s": "Online booking of a visit to the Parlamentarium."}, {"d": "12-06-2026", "k": "Photos", "h": "search-photos.html", "t": "Parlamentarium - 4 million visitors", "s": "Photoset (10 photos): the Parlamentarium welcomes its 4 millionth visitor."}, {"d": "", "k": "Videos", "h": "search-videos.html", "t": "Roberta METSOLA, EP President visits the Parlamentarium (visitors' centre of the European Parliament in Brussels)", "s": "Video (04:03): visit of the President to the visitors’ centre."}, {"d": "", "k": "Videos", "h": "search-videos.html", "t": "Opening of “Femmes” exhibition at the Parlamentarium: visit and statement by David SASSOLI, EP President", "s": "Video (07:41): opening of the exhibition."}, {"d": "", "k": "Videos", "h": "search-videos.html", "t": "Temporary exhibition “Andrei Sakharov: Scientist, Dissident, Human Rights Activist”", "s": "Video (05:15): temporary exhibition at the Parlamentarium."}];
+  const PANEL_PAR = "      <aside class=\"kpanel kpanel--topic\" aria-label=\"Parlamentarium\">\n        <div class=\"kpanel-text\">\n          <h2 class=\"kpanel-name\"><a href=\"https://visiting.europarl.europa.eu/en/brussels/parlamentarium\" target=\"_blank\" rel=\"noopener\">Parlamentarium</a></h2>\n          <p><span class=\"kpanel-lab\">Address:</span> Esplanade Solidarno\u015b\u0107 1980, Rue Wiertz 60, 1047 Brussels, Belgium</p>\n          <p><a href=\"https://brussels-parlamentarium.booking.europarl.europa.eu/\" target=\"_blank\" rel=\"noopener\">Book your visit</a></p>\n        </div>\n      </aside>\n      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20260612_EP-206878A_PHB_0086/20260612_EP-206878A_PHB_0086-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">10</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Parlamentarium - 4 million visitors</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n<div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/20459116/1647537456224_I221336_mobile.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">04:03</span></span></span><span class=\"result-caption\">Roberta METSOLA, EP President visits the Parlamentarium (visitors' centre of the European Parliament in Brussels)</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/77816253/1724426871470_I196234_mobile.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">07:41</span></span></span><span class=\"result-caption\">Opening of \u201cFemmes\u201d exhibition at the Parlamentarium: visit and statement by David SASSOLI, EP President</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/982132/I215150.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">05:15</span></span></span><span class=\"result-caption\">Temporary exhibition \u201cAndrei Sakharov: Scientist, Dissident, Human Rights Activist\u201d</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  const PANEL_CLIMATE = "      <div class=\"kpanel-photos kpanel-sets\"><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261012_EP-212540A_PBU_577/20261012_EP-212540A_PBU_577-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">26</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">ENVI ENVE - Building a sustainable future: funding environmental and climate policies in the next Multiannual Financial Framework</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://cos-ep-mp-multimedia-prod.s3.eu-de.cloud-object-storage.appdomain.cloud/20261006_EP-211404F_JBB_0018/20261006_EP-211404F_JBB_0018-THUMBNAIL.avif\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">29</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">EP Plenary session - October I 2026 - Implementation of the Methane Regulation</span></a><a class=\"result-card\" href=\"search-photos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/37690273/1653920610357_20220527_EP-132361A_EVD_536_MOBILE.jpg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 2h14v2H4v12H2z\"/><path fill-rule=\"evenodd\" d=\"M22 8H8v14h14zM20 10v10H10V10z\"/><polygon points=\"11 19 14 14.5 16 17.5 17.5 15.5 19 19\"/><circle cx=\"17.5\" cy=\"12.5\" r=\"1.2\"/></svg><span class=\"thumb-count\">61</span><span class=\"sr-only\"> photos</span></span></span><span class=\"result-caption\">Cows, bulls, calves, sheeps, products -meat and pastas- and general views in a farm surrounded by windmills in Villers-le-Bouillet, near Liege, Belgium</span></a></div>\n      <a class=\"kpanel-viewall\" href=\"search-photos.html\">View more pictures <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>\n      <div class=\"kpanel-photos kpanel-videos\"><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98285152/1789544795108_I293058%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">08:41</span></span></span><span class=\"result-caption\">State of the European Union debate 2026 - #SOTEU2026: statement by Ursula von der LEYEN, President of the EC, on Climate</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98405951/1790190481692_I294524%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">20:15</span></span></span><span class=\"result-caption\">Bloomberg Green New York: Conversation with Roberta METSOLA, EP President</span></a><a class=\"result-card\" href=\"search-videos.html\"><span class=\"thumb\"><img class=\"thumb-img\" src=\"https://api.multimedia.europarl.europa.eu/documents/20125/98288079/1789547491675_I294296%5Bthumb%5D.jpeg\" alt=\"\" loading=\"lazy\"><span class=\"thumb-badge\"><svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M21 3H3v18h18zM19 5v14H5V5z\"/><polygon points=\"10 8 16 12 10 16\"/></svg><span class=\"thumb-count\">1:13:43</span></span></span><span class=\"result-caption\">State of the European Union debate 2026 - #SOTEU2026: statement by Ursula von der LEYEN, President of the EC (full version)</span></a></div>\n      <a class=\"kpanel-viewall kpanel-viewall--last\" href=\"search-videos.html\">View more videos <svg class=\"icon icon-24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><polygon points=\"20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01\" transform=\"matrix(-1 0 0 1 24 0)\"/></svg></a>";
+  // what the search finds: the query picks a dataset (demo content); nothing matches -> no results
+  const DATASETS = [
+    { re: /metsola/i, keyword: 'Metsola', results: METSOLA_RESULTS, panel: PANEL_METSOLA, total: 1248 },
+    { re: /climat/i, keyword: 'Climat\\w*', results: CLIMATE_RESULTS, panel: PANEL_CLIMATE, total: 2816 },
+    { re: /\bEPP\b|\bPPE\b|people.s party/i, keyword: '\\bEPP\\b', results: EPP_RESULTS, panel: PANEL_EPP, total: 2134 },
+    { re: /\bDCAM\b|central america/i, keyword: '\\bDCAM\\b|Central America', results: DCAM_RESULTS, panel: PANEL_DCAM, total: 187 },
+    { re: /liaison office|\bdublin\b/i, keyword: 'Liaison|Dublin', results: DUB_RESULTS, panel: PANEL_DUB, total: 94 },
+    { re: /parlamentarium/i, keyword: 'Parlamentarium', results: PAR_RESULTS, panel: PANEL_PAR, total: 312 },
+    { re: /\btran\b|transport/i, keyword: '\\bTRAN\\b|Transport\\w*', results: TRAN_RESULTS, panel: PANEL_TRAN, total: 3417 }
+  ];
+  let results = [], KEYWORD = 'Metsola', TOTAL = 0, pages = 0, page = 1, mediaBlock = '';
+  const PAGE = 20;
+  const list = document.getElementById('results-list'), pager = document.getElementById('pager'), count = document.getElementById('resCount');
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const hl = t => KEYWORD ? esc(t).replace(new RegExp(KEYWORD, 'gi'), m => `<mark>${m}</mark>`) : esc(t);   // keyword highlighted in titles and snippets
+  // the next meeting is part of the knowledge panel (agenda item: label, date + time, title, Type / Committee / Location, View full agenda)
+  const agendaHTML = r => `<div class="res-agenda"><p class="res-next">${r.label || 'Next meeting'}:</p><p class="ag-time">${r.long}${r.time ? `, ${r.time}` : ''}</p><p class="ag-title">${r.t}</p><p class="ag-line">Type: ${r.type}</p>${r.c ? `<p class="ag-line">Committee: ${r.c}</p>` : ''}<p class="ag-line">Location: ${r.loc}</p><a class="res-fullagenda" href="${r.src}">View full agenda <svg class="icon icon-24" viewBox="0 0 24 24" aria-hidden="true"><polygon points="20 11.01 7.83 11.01 11.08 7.76 9.66 6.35 4 12.01 9.66 17.67 11.07 16.25 7.83 13.01 20 13.01 20 11.01" transform="matrix(-1 0 0 1 24 0)"/></svg></a></div>`;
+  function render() {
+    count.textContent = `${TOTAL.toLocaleString('en-US')} results`;
+    const items = !results.length ? ['<li><p class="res-snippet">No results for this search. Try “Metsola”, “Climate”, “TRAN”, “DCAM”, “Dublin” or “Parlamentarium”.</p></li>'] : Array.from({ length: PAGE }, (_, i) => results[((page - 1) * PAGE + i) % results.length]).map(r => {
+      const ext = /^https?:/.test(r.h) ? ' target="_blank" rel="noopener"' : '';
+      const src = r.src ? `<span class="res-src-row"><a class="res-source" href="${r.src}">${r.k}</a><a class="click-patch" href="${r.src}" aria-hidden="true" tabindex="-1"></a></span>` : r.h === '#' || r.h.startsWith('search-') ? `<a class="res-source" href="${r.h}">${r.k}</a>` : `<a class="res-source" href="${r.h}"${ext}>${r.k}</a>`;
+      return `<li><a class="res-title" href="${r.h}"${ext}>${hl(r.t)}</a>${r.c ? `<p class="res-snippet">Committee: ${r.c}</p>` : ''}<p class="res-snippet">${hl(r.s)}</p>${r.d ? `<p class="res-date">${r.d}</p>` : ''}${src}</li>`;
+    });
+    // the knowledge panel's media (photosets, videos, next meeting) sits between two dividers after the 3rd result
+    if (mediaBlock && page === 1) items.splice(3, 0, `<li class="res-kp">${mediaBlock}</li>`);
+    list.innerHTML = items.join('');
+    if (mediaBlock && page === 1 && KEYWORD) markText(list.querySelector('.res-kp'));
+    pager.hidden = pages < 2; pager.innerHTML = '';
+    if (pages < 2) return;
+    const go = n => { page = n; render(); document.getElementById('resCount').scrollIntoView({ block: 'start' }); };
+    const nav = (label, arrow, to) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'nav-btn'; b.innerHTML = arrow === 'prev' ? '<span aria-hidden="true">←</span> Previous' : 'Next <span aria-hidden="true">→</span>'; b.setAttribute('aria-label', label); b.addEventListener('click', () => go(to)); return b; };
+    if (page > 1) pager.appendChild(nav('Previous page', 'prev', page - 1));
+    const shown = [...new Set([1, page - 1, page, page + 1, pages])].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+    shown.forEach((n, i) => { if (i && n - shown[i - 1] > 1) { const e = document.createElement('span'); e.className = 'page-gap'; e.textContent = '…'; e.setAttribute('aria-hidden', 'true'); pager.appendChild(e); } const b = document.createElement('button'); b.type = 'button'; b.className = 'page-btn' + (n === page ? ' is-selected' : ''); b.textContent = n; if (n === page) b.setAttribute('aria-current', 'page'); b.addEventListener('click', () => go(n)); pager.appendChild(b); });
+    if (page < pages) pager.appendChild(nav('Next page', 'next', page + 1));
+  }
+  // All / Photos / Videos tabs navigate between the three result pages, keeping the query
+  document.querySelectorAll('.tab[data-go]').forEach(t => { t.dataset.base = t.dataset.go; t.addEventListener('click', () => { location.href = t.dataset.go; }); });
+  const syncTabs = q => document.querySelectorAll('.tab[data-go]').forEach(t => { t.dataset.go = t.dataset.base + (q ? '?q=' + encodeURIComponent(q) : ''); });
+  // run a search: pick the dataset, fill the knowledge panel and the list
+  const slot = document.getElementById('kpanel-slot'), searchInput = document.querySelector('.search-bar input[type="search"]');
+  function runSearch(q) {
+    const ds = DATASETS.find(d => d.re.test(q));
+    const nextMeeting = ds && ds.results.find(r => r.agenda);
+    results = ds ? ds.results.filter(r => !r.agenda) : []; KEYWORD = ds ? ds.keyword : ''; TOTAL = ds ? ds.total : 0; pages = ds ? Math.ceil(TOTAL / PAGE) : 0; page = 1;
+    syncTabs(q);
+    // the card (name / title, links) stays on top; the media + next meeting go between two dividers further down
+    const cut = ds ? ds.panel.indexOf('<div class="kpanel-photos') : -1;
+    slot.innerHTML = ds ? (cut > 0 ? ds.panel.slice(0, cut) : cut === 0 ? '' : ds.panel) : '';   // a keyword search (e.g. climate) has no card, only the media block
+    mediaBlock = ds && cut >= 0 ? ds.panel.slice(cut) + (nextMeeting ? agendaHTML(nextMeeting) : '') : '';
+    if (KEYWORD) markText(slot);   // the keyword is highlighted in the knowledge panel too
+    render();
+  }
+  // wrap every occurrence of the keyword in the text nodes under `root` with <mark>
+  function markText(root) {
+    const re = new RegExp(KEYWORD, 'gi'), nodes = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) if (re.test(w.currentNode.nodeValue) && !w.currentNode.parentElement.closest('.res-agenda, a[href^="mailto:"]')) nodes.push(w.currentNode);   // the next meeting block is not highlighted
+    nodes.forEach(n => {
+      const frag = document.createDocumentFragment(); let last = 0; const txt = n.nodeValue; re.lastIndex = 0; let m;
+      while ((m = new RegExp(KEYWORD, 'gi').exec(txt.slice(last)))) {
+        const at = last + m.index; frag.append(txt.slice(last, at)); const mk = document.createElement('mark'); mk.textContent = m[0]; frag.append(mk); last = at + m[0].length;
+      }
+      frag.append(txt.slice(last)); n.replaceWith(frag);
+    });
+  }
+  const startQuery = (new URLSearchParams(location.search).get('q') || searchInput.value || 'Metsola').trim();
+  searchInput.value = startQuery; runSearch(startQuery);
+  document.querySelector('.search-bar').addEventListener('submit', e => {
+    e.preventDefault(); const q = searchInput.value.trim(); runSearch(q);
+    history.replaceState(null, '', '?q=' + encodeURIComponent(q));
+  });
+
+  const filtersToggle = document.getElementById('filtersToggle');
+  const filtersPanel = document.getElementById('filtersPanel');
+  function toggleFiltersPanel() {
+    const isHidden = filtersPanel.hasAttribute('hidden');
+    if (isHidden) { filtersPanel.removeAttribute('hidden'); }
+    else { filtersPanel.setAttribute('hidden', ''); }
+    filtersToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+  }
+  filtersToggle.addEventListener('click', toggleFiltersPanel);
+  const resetFilters = () => {
+    const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+    set('ro-sets', el => { el.checked = true; });
+    set('date-from', el => { el.value = ''; });
+    set('date-to', el => { el.value = ''; });
+  };
+  ['filtersReset', 'filtersResetM'].forEach(id => document.getElementById(id).addEventListener('click', resetFilters));
+  // Clear filters only shows when a filter is actually applied (a date, or a "show only" other than the default)
+  const filtersApplied = () => ['date-from', 'date-to'].some(id => { const el = document.getElementById(id); return el && el.value.trim(); })
+    || [...document.querySelectorAll('input[name="show-only"]')].some(r => r.checked !== r.defaultChecked);
+  const syncClear = () => { const on = filtersApplied(); ['filtersReset', 'filtersResetM'].forEach(id => { document.getElementById(id).hidden = !on; }); };
+  syncClear(); setInterval(syncClear, 250);   // dates are set by the date picker script, so poll rather than chase every event
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.remove('is-selected');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('is-selected');
+      tab.setAttribute('aria-selected', 'true');
+    });
+  });
+
+  const sortDropdown = document.getElementById('sortDropdown');
+  const sortTrigger = document.getElementById('sortTrigger');
+  const sortMenu = document.getElementById('sortMenu');
+  const sortValue = document.getElementById('sortValue');
+
+  function closeSortMenu() {
+    sortDropdown.classList.remove('is-open');
+    sortTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  sortTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = sortDropdown.classList.toggle('is-open');
+    sortTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  sortMenu.querySelectorAll('.sort-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      sortMenu.querySelectorAll('.sort-option').forEach(o => {
+        o.classList.remove('is-selected');
+        o.setAttribute('aria-selected', 'false');
+      });
+      opt.classList.add('is-selected');
+      opt.setAttribute('aria-selected', 'true');
+      sortValue.textContent = opt.textContent.trim();
+      closeSortMenu();
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!sortDropdown.contains(e.target)) closeSortMenu();
+  });
+</script>
+
+</body>
+</html>
